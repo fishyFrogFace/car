@@ -29,5 +29,6 @@ carPrice carType = case carType of
                     Sport -> 60
                     SUV   -> 100
 
-calcTotal :: IO ()
-calcTotal = putStrLn "Not implemented yet"
+--dummy function, since creating the price information is not implemented yet
+calcTotal :: [String] -> String
+calcTotal input = show . encode $ PriceInfo 1 2 3 4
