@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings, DeriveGeneric, NamedFieldPuns #-}
 module Lib
     ( Car(..)
     , PriceInfo(..)
@@ -6,6 +6,7 @@ module Lib
     , carPrice
     , calcTotal
     , toRentalInfo
+    , validateRental
     ) where
 
 import Data.Aeson
@@ -65,6 +66,21 @@ toMember member
     |member == "false" = Just False
     |member == "true"  = Just True
     |otherwise         = Nothing
+
+is18 :: RentalInfo -> Bool
+is18 (RentalInfo {age})
+    |age >= 18 = True
+    |otherwise = False
+
+validateRental :: ([Maybe Int], [String]) -> Maybe RentalInfo
+validateRental p
+    |mRental == Nothing = Nothing
+    |is18 r             = mRental
+    |otherwise          = Nothing
+   where
+    mRental = toRentalInfo p
+    rental (Just r) = r
+    r = rental mRental
 
 --dummy function, since creating the price information is not implemented yet
 calcTotal :: ([Maybe Int], [String]) -> String

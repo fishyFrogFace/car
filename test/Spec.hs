@@ -18,6 +18,9 @@ input = "\"{\"rentDates\":" ++
         "\"membership\":false," ++
         "\"age\":24}\""
 parsed = ([Just 7,Just 1,Just 2],["sport","false","24"])
+badParsed = ([Nothing,Just 1,Just 2],["sport","false","18"])
+lowAge = ([Just 7,Just 1,Just 2],["sport","false","17"])
+goodAge = ([Just 7,Just 1,Just 2],["sport","false","18"])
 
 main :: IO ()
 main = hspec $ do
@@ -32,3 +35,10 @@ main = hspec $ do
             parseInput input `shouldBe` parsed
         it "can create RentalInfo from parsed JSON" $ do
             toRentalInfo parsed `shouldBe` (Just $ RentalInfo [7,1,2] Sport False 24)
+    describe "Validate RentalInfo and age" $ do
+        it "can reject based on age" $ do
+            validateRental lowAge `shouldBe` Nothing
+        it "approves based on age" $ do
+            validateRental goodAge `shouldBe` (Just $ RentalInfo [7,1,2] Sport False 18)
+        it "rejects invalid rentals" $ do
+            validateRental badParsed `shouldBe` Nothing
