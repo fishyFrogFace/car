@@ -46,3 +46,12 @@ main = hspec $ do
             validateRental ([Just 7,Just 1,Just 2],["spgort","false","18"]) `shouldBe` Nothing
         it "rejects invalid membership" $ do
             validateRental ([Just 7,Just 1,Just 2],["sport","fase","18"]) `shouldBe` Nothing
+    describe "Calculate price and discounts" $ do
+        it "can calculate correct price for a car weekend/weekdays" $ do
+            carTotal Small [7,1,2] `shouldBe` 112
+        it "can calculate correct discount for amount of days" $ do
+            map dayDiscount [[1..3], [1..6], [1..11]] `shouldBe` [0.95, 0.90, 0.85]
+        it "can calculate correct subTotal with member discount" $ do
+            afterDiscounts SUV [6] True `shouldBe` 95
+        it "can calculate correct subTotal without member discount" $ do
+            afterDiscounts SUV [6] False `shouldBe` 100

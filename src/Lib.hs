@@ -7,6 +7,9 @@ module Lib
     , calcTotal
     , toRentalInfo
     , validateRental
+    , carTotal
+    , dayDiscount
+    , afterDiscounts
     ) where
 
 import Data.Aeson
@@ -40,6 +43,31 @@ carPrice carType = case carType of
                     Small -> 40
                     Sport -> 60
                     SUV   -> 100
+
+carTotal :: Car -> [Int] -> Int
+carTotal _ [] = 0
+carTotal car (x:xs)
+    |x < 6     = (dayPrice - (dayPrice `div` 10)) + (carTotal car xs)
+    |otherwise = dayPrice + (carTotal car xs) 
+   where
+    dayPrice = carPrice car
+
+dayDiscount :: [Int] -> Float
+dayDiscount [] = 0
+dayDiscount dates
+    |days < 3   = 1
+    |days >= 11 = 0.85
+    |days >= 6  = 0.9
+    |otherwise  = 0.95
+   where
+    days = length dates
+
+afterDiscounts :: Car -> [Int] -> Bool -> Float
+afterDiscounts car days mem
+    |mem = tot*0.95
+    |otherwise = tot
+   where
+    tot = fromIntegral (carTotal car days) * (dayDiscount days)
 
 toRentalInfo :: ([Maybe Int], [String]) -> Maybe RentalInfo
 toRentalInfo (days, [car, member, age])
