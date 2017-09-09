@@ -17,6 +17,7 @@ input = "\"{\"rentDates\":" ++
                 "\"type\":\"sport\"}," ++
         "\"membership\":false," ++
         "\"age\":24}\""
+parsed = ([Just 7,Just 1,Just 2],["sport","false","24"])
 
 main :: IO ()
 main = hspec $ do
@@ -28,4 +29,6 @@ main = hspec $ do
             map carPrice [Small, Sport, SUV] `shouldBe` [40, 60, 100]
     describe "From JSON for processing" $ do
         it "can parse JSON" $ do
-            parseInput input `shouldBe` ([Just 7,Just 1,Just 2],["sport","false","24"])
+            parseInput input `shouldBe` parsed
+        it "can create RentalInfo from parsed JSON" $ do
+            toRentalInfo parsed `shouldBe` (Just $ RentalInfo [7,1,2] Sport False 24)
