@@ -11,6 +11,7 @@ module Lib
     , dayDiscount
     , afterDiscounts
     , discount
+    , insurance
     ) where
 
 import Data.Aeson
@@ -102,6 +103,20 @@ toMember member
     |member == "false" = Just False
     |member == "true"  = Just True
     |otherwise         = Nothing
+
+insPerDay :: Car -> Double
+insPerDay car = case car of
+                    Small -> 5
+                    Sport -> 7
+                    SUV   -> 10
+
+insurance :: [Int] -> Car -> Int -> Double
+insurance [] _ _ = 0
+insurance dates car age
+    |age < 25 = days*(insPerDay car)*1.25
+    |otherwise = days*(insPerDay car)
+   where
+    days = fromIntegral (length dates)
 
 is18 :: RentalInfo -> Bool
 is18 (RentalInfo {age})
