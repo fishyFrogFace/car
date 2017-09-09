@@ -12,6 +12,7 @@ module Lib
     , afterDiscounts
     , discount
     , insurance
+    , toPriceInfo
     ) where
 
 import Data.Aeson
@@ -32,11 +33,11 @@ data RentalInfo = RentalInfo {
 } deriving (Show, Eq)
 
 data PriceInfo = PriceInfo {
-    subtotal :: Float,
-    insuranceTotal :: Float,
-    discountPercentage :: Float,
-    totalPayment :: Float
-} deriving (Show, Generic)
+    subtotal :: Int,
+    insuranceTotal :: Double,
+    discountPercentage :: Double,
+    totalPayment :: Double
+} deriving (Show, Eq, Generic)
 
 instance ToJSON PriceInfo
 
@@ -59,7 +60,9 @@ subTotal _ [] = 0
 subTotal car (x:xs) = (carPrice car) + (subTotal car xs)
 
 discount :: Int -> Double -> Double
-discount subT disc = (disc/fromIntegral subT)*100
+discount subT disc = 100-percentage
+                  where
+                     percentage = (disc/fromIntegral subT)*100
 
 dayDiscount :: [Int] -> Double
 dayDiscount [] = 0
@@ -117,6 +120,15 @@ insurance dates car age
     |otherwise = days*(insPerDay car)
    where
     days = fromIntegral (length dates)
+
+toPriceInfo :: RentalInfo -> PriceInfo
+toPriceInfo (RentalInfo {dates, carType, member, age}) = PriceInfo sub ins dis tot
+    where
+        sub = subTotal carType dates
+        ins = insurance dates carType age
+        aft = afterDiscounts carType dates member
+        dis = discount sub aft
+        tot = ins+aft
 
 is18 :: RentalInfo -> Bool
 is18 (RentalInfo {age})

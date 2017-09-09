@@ -56,8 +56,11 @@ main = hspec $ do
         it "can calculate correct subTotal without member discount" $ do
             afterDiscounts SUV [6] False `shouldBe` 100
         it "can calculate discount given ordinary and discounted price" $ do
-            discount 5 2.0 `shouldBe` 40
+            discount 5 2.0 `shouldBe` 60
         it "can calculate correct insurance cost for renter under 25" $ do
             insurance [1..5] Sport 24 `shouldBe` 43.75
         it "can calculate correct insurance cost for renter over 25" $ do
             insurance [1..5] Sport 25 `shouldBe` 35
+    describe "Convert RentalInfo to PriceInfo" $ do
+        it "can convert RentalInfo to PriceInfo" $ do
+            toPriceInfo (RentalInfo [6,7,1,2] Sport False 65) `shouldBe` (PriceInfo 240 28 9.75 244.6)
