@@ -10,6 +10,7 @@ module Lib
     , carTotal
     , dayDiscount
     , afterDiscounts
+    , discount
     ) where
 
 import Data.Aeson
@@ -52,7 +53,14 @@ carTotal car (x:xs)
    where
     dayPrice = carPrice car
 
-dayDiscount :: [Int] -> Float
+subTotal :: Car -> [Int] -> Int
+subTotal _ [] = 0
+subTotal car (x:xs) = (carPrice car) + (subTotal car xs)
+
+discount :: Int -> Double -> Double
+discount subT disc = (disc/fromIntegral subT)*100
+
+dayDiscount :: [Int] -> Double
 dayDiscount [] = 0
 dayDiscount dates
     |days < 3   = 1
@@ -62,7 +70,7 @@ dayDiscount dates
    where
     days = length dates
 
-afterDiscounts :: Car -> [Int] -> Bool -> Float
+afterDiscounts :: Car -> [Int] -> Bool -> Double
 afterDiscounts car days mem
     |mem = tot*0.95
     |otherwise = tot

@@ -55,3 +55,5 @@ main = hspec $ do
             afterDiscounts SUV [6] True `shouldBe` 95
         it "can calculate correct subTotal without member discount" $ do
             afterDiscounts SUV [6] False `shouldBe` 100
+        it "can calculate discount given ordinary and discounted price" $ do
+            discount 5 2.0 `shouldBe` 40
