@@ -8,6 +8,10 @@ result = "\"{\\\"insuranceTotal\\\":2," ++
              "\\\"subtotal\\\":1," ++
              "\\\"discountPercentage\\\":3," ++
              "\\\"totalPayment\\\":4.5}\""
+result2 = "\"{\\\"insuranceTotal\\\":28," ++
+              "\\\"subtotal\\\":240," ++
+              "\\\"discountPercentage\\\":9.75," ++
+              "\\\"totalPayment\\\":244.6}\""
 input = "\"{\"rentDates\":" ++
                 "[\"2017-11-19T05:00:00.000Z\"," ++
                 "\"2017-11-20T05:00:00.000Z\"," ++
@@ -18,6 +22,7 @@ input = "\"{\"rentDates\":" ++
         "\"membership\":false," ++
         "\"age\":24}\""
 parsed = ([Just 7,Just 1,Just 2],["sport","false","24"])
+parsed2 = ([Just 6, Just 7,Just 1,Just 2],["sport","false","65"])
 badParsed = ([Nothing,Just 1,Just 2],["sport","false","18"])
 lowAge = ([Just 7,Just 1,Just 2],["sport","false","17"])
 goodAge = ([Just 7,Just 1,Just 2],["sport","false","18"])
@@ -64,3 +69,6 @@ main = hspec $ do
     describe "Convert RentalInfo to PriceInfo" $ do
         it "can convert RentalInfo to PriceInfo" $ do
             toPriceInfo (RentalInfo [6,7,1,2] Sport False 65) `shouldBe` (PriceInfo 240 28 9.75 244.6)
+    describe "Return JSON string of PriceInfo from parsed" $
+        it "can convert parsed rental information to a JSON string" $ do
+            calcTotal parsed2 `shouldBe` result2

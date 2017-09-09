@@ -145,8 +145,7 @@ validateRental p
     rental (Just r) = r
     r = rental mRental
 
---dummy function, since creating the price information is not implemented yet
 calcTotal :: ([Maybe Int], [String]) -> String
 calcTotal input = case validateRental input of
-                    Just rental -> show . encode $ PriceInfo 1 2 3 4
+                    Just rental -> show . encode $ toPriceInfo rental
                     Nothing     -> "The rental was not valid or renter is under 18"
