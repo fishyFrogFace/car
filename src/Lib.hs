@@ -13,6 +13,7 @@ module Lib
     , discount
     , insurance
     , toPriceInfo
+    , roundTwo
     ) where
 
 import Data.Aeson
@@ -121,14 +122,18 @@ insurance dates car age
    where
     days = fromIntegral (length dates)
 
+roundTwo :: (Fractional a, RealFrac a1) => a1 -> a
+roundTwo x = (fromInteger $ round $ x * (10^2)) / (10.0^^2)
+
 toPriceInfo :: RentalInfo -> PriceInfo
 toPriceInfo (RentalInfo {dates, carType, member, age}) = PriceInfo sub ins dis tot
     where
-        sub = subTotal carType dates
-        ins = insurance dates carType age
-        aft = afterDiscounts carType dates member
-        dis = discount sub aft
-        tot = ins+aft
+        sub  = subTotal carType dates
+        ins' = insurance dates carType age
+        aft' = afterDiscounts carType dates member
+        dis' = discount sub aft'
+        tot' = ins'+aft'
+        [ins, dis, tot] = map roundTwo [ins', dis', tot']
 
 is18 :: RentalInfo -> Bool
 is18 (RentalInfo {age})

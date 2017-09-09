@@ -69,6 +69,8 @@ main = hspec $ do
     describe "Convert RentalInfo to PriceInfo" $ do
         it "can convert RentalInfo to PriceInfo" $ do
             toPriceInfo (RentalInfo [6,7,1,2] Sport False 65) `shouldBe` (PriceInfo 240 28 9.75 244.6)
+        it "rounds floating point numbers to two decimals" $ do
+            roundTwo (0.555555) `shouldBe` 0.56
     describe "Return JSON string of PriceInfo from parsed" $
         it "can convert parsed rental information to a JSON string" $ do
             calcTotal parsed2 `shouldBe` result2
