@@ -40,5 +40,9 @@ main = hspec $ do
             validateRental lowAge `shouldBe` Nothing
         it "approves based on age" $ do
             validateRental goodAge `shouldBe` (Just $ RentalInfo [7,1,2] Sport False 18)
-        it "rejects invalid rentals" $ do
+        it "rejects invalid rental dates" $ do
             validateRental badParsed `shouldBe` Nothing
+        it "rejects invalid car" $ do
+            validateRental ([Just 7,Just 1,Just 2],["spgort","false","18"]) `shouldBe` Nothing
+        it "rejects invalid membership" $ do
+            validateRental ([Just 7,Just 1,Just 2],["sport","fase","18"]) `shouldBe` Nothing
