@@ -6,4 +6,5 @@ import Parse
 main :: IO ()
 main = do
     content <- readFile "src/content.txt"
-    print $ map parseInput (lines content)
+    let parsed = map parseInput (lines content)
+    print $ map calcTotal parsed
