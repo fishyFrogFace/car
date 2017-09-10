@@ -1,5 +1,6 @@
 module Parse
     ( parseInput
+    , toDateTime'
     ) where
 
 import Data.List.Split
@@ -7,6 +8,7 @@ import Data.Maybe
 import Text.Read
 import Data.Time (fromGregorianValid)
 import Data.Time.Calendar.WeekDate (toWeekDate)
+import Control.Monad
 
 chars = ['\"', '{', '}', ' ']
 
@@ -52,9 +54,7 @@ toDateTime [date, _] = case (splitOn "-" date) of
                             _       -> Nothing
 toDateTime _ = Nothing
 
-toDateTime' [y,m,d] = case (yy,mm,dd) of
-                            (Just ye, Just mo, Just day) -> validDate ye mo day
-                            _                            -> Nothing
+toDateTime' [y,m,d] = join $ fmap validDate yy <*> mm <*> dd
                         where
                             yy = readMaybe y :: Maybe Int
                             mm = readMaybe m :: Maybe Int
@@ -62,9 +62,7 @@ toDateTime' [y,m,d] = case (yy,mm,dd) of
 toDateTime' _ = Nothing
 
 validDate :: Int -> Int -> Int -> Maybe Int
-validDate y m d = case rentalDay of
-                    Just day -> Just $ validDate' (toWeekDate day)
-                    Nothing  -> Nothing
+validDate y m d = fmap (validDate' . toWeekDate) rentalDay
                 where
                     rentalDay = fromGregorianValid (fromIntegral y) m d
                     validDate' (_,_,wd) = wd

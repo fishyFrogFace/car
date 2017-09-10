@@ -40,6 +40,10 @@ main = hspec $ do
             parseInput input `shouldBe` parsed
         it "can create RentalInfo from parsed JSON" $ do
             toRentalInfo parsed `shouldBe` (Just $ RentalInfo [7,1,2] Sport False 24)
+        it "rejects invalid gregorian dates" $ do
+            toDateTime' ["2017", "2", "29"] `shouldBe` Nothing
+        it "approves valid gregorian dates" $ do
+            toDateTime' ["2020", "02", "29"] `shouldBe` Just 6
     describe "Validate RentalInfo and age" $ do
         it "can reject based on age" $ do
             validateRental lowAge `shouldBe` Nothing
