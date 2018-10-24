@@ -1,47 +1,57 @@
-name:                car
-version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/githubuser/car#readme
-license:             BSD3
-license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2017 Author name here
-category:            Web
-build-type:          Simple
-extra-source-files:  README.md
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: c54a13db7a23381987849091a5c3da98e33f681fd0f11aae1460b3c1fa317f9c
+
+name:           car
+version:        0.1.0.0
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
 
 library
-  hs-source-dirs:      src
-  exposed-modules:     Lib
-                       Parse
-  build-depends:       base >= 4.7 && < 5
-                     , aeson
-                     , split
-                     , time
-  default-language:    Haskell2010
+  exposed-modules:
+      Lib
+      RenameUtils
+  other-modules:
+      Paths_car
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , split
+    , time
+  default-language: Haskell2010
 
 executable car-exe
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , car
-  default-language:    Haskell2010
+  main-is: Main.hs
+  other-modules:
+      Paths_car
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , car
+  default-language: Haskell2010
 
 test-suite car-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , car
-                     , hspec
-                     , aeson
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
-
-source-repository head
-  type:     git
-  location: https://github.com/githubuser/car
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_car
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , aeson
+    , base >=4.7 && <5
+    , bytestring
+    , car
+    , hspec
+  default-language: Haskell2010

@@ -1,11 +1,14 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric, NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Lib
     ( Car(..)
     , PriceInfo(..)
     , RentalInfo(..)
     , carPrice
     , calcTotal
-    , toRentalInfo
     , validateRental
     , carTotal
     , dayDiscount
@@ -16,47 +19,91 @@ module Lib
     , roundTwo
     ) where
 
-import Data.Aeson
+import Data.Aeson (FromJSON(..), ToJSON(..), decode, encode)
+import Data.Aeson.TH (deriveJSON, defaultOptions, Options(fieldLabelModifier))
 import GHC.Generics
-import Text.Read
+import RenameUtils
+import Data.Time.Clock (UTCTime(..), utctDay)
+import Data.Time.Calendar (Day(..))
+import Data.Time.Calendar.WeekDate (toWeekDate)
+import Control.Monad ((=<<))
+import Data.ByteString.Lazy.Internal (ByteString(..))
 
-data Car
-    = Small
-    | Sport
-    | SUV
-    deriving (Show, Eq)
+data WeekDay = Monday
+             | Tuesday
+             | Wednesday
+             | Thursday
+             | Friday
+             | Saturday
+             | Sunday
+             deriving (Show, Eq)
 
-data RentalInfo = RentalInfo {
-    dates :: [Int],
-    carType :: Car,
-    member :: Bool,
-    age :: Int
-} deriving (Show, Eq)
+-- when time-1.9 is supported in a LTS, this function can be made a lot prettier
+-- since both WeekDay(..) and dayOfWeek can be called from the library
+-- intday is a partial function and should stay inside dayOfWeek
+dayOfWeek :: UTCTime -> WeekDay
+dayOfWeek utc = intWeekday num
+                 where
+            (_,_,num) = toWeekDate $ utctDay utc
+            intWeekday :: Int -> WeekDay
+            intWeekday 1 = Monday
+            intWeekday 2 = Tuesday
+            intWeekday 3 = Wednesday
+            intWeekday 4 = Thursday
+            intWeekday 5 = Friday
+            intWeekday 6 = Saturday
+            intWeekday 7 = Sunday
 
-data PriceInfo = PriceInfo {
-    subtotal :: Int,
-    insuranceTotal :: Double,
-    discountPercentage :: Double,
-    totalPayment :: Double
-} deriving (Show, Eq, Generic)
+data Model = Dwarfy
+           | Halfing
+           | Eveo
+           | Cherato
+           | Vitoro
+           | Exploring
+           deriving (Show, Eq, Generic)
+
+instance FromJSON Model
+instance ToJSON Model
+
+data Car = Car { model :: Model
+               , carType :: String
+               } deriving (Show, Eq, Generic)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = carFieldRename} ''Car)
+
+data RentalInfo = RentalInfo { rentDates :: [UTCTime]
+                             , car :: Car
+                             , membership :: Bool
+                             , age :: Int
+                             } deriving (Show, Eq, Generic)
+
+instance FromJSON RentalInfo
+instance ToJSON RentalInfo
+
+data PriceInfo = PriceInfo { subtotal :: Int
+                           , insuranceTotal :: Double
+                           , discountPercentage :: Double
+                           , totalPayment :: Double
+                           } deriving (Show, Eq, Generic)
 
 instance ToJSON PriceInfo
+instance FromJSON PriceInfo
 
 carPrice :: Car -> Int
-carPrice carType = case carType of
-                    Small -> 40
-                    Sport -> 60
-                    SUV   -> 100
+carPrice car = case carType car of
+                    "small" -> 40
+                    "sport" -> 60
+                    "SUV"   -> 100
 
-carTotal :: Car -> [Int] -> Int
+carTotal :: Car -> [WeekDay] -> Int
 carTotal _ [] = 0
 carTotal car (x:xs)
-    |x < 6     = (dayPrice - (dayPrice `div` 10)) + (carTotal car xs)
-    |otherwise = dayPrice + (carTotal car xs) 
+    | x == Saturday || x == Sunday = dayPrice + (carTotal car xs)
+    | otherwise                    = (dayPrice - (dayPrice `div` 10)) + (carTotal car xs)
    where
     dayPrice = carPrice car
 
-subTotal :: Car -> [Int] -> Int
+subTotal :: Car -> [UTCTime] -> Int
 subTotal _ [] = 0
 subTotal car (x:xs) = (carPrice car) + (subTotal car xs)
 
@@ -65,60 +112,34 @@ discount subT disc = 100-percentage
                   where
                      percentage = (disc/fromIntegral subT)*100
 
-dayDiscount :: [Int] -> Double
+dayDiscount :: [WeekDay] -> Double
 dayDiscount [] = 0
 dayDiscount dates
-    |days < 3   = 1
-    |days >= 11 = 0.85
-    |days >= 6  = 0.9
-    |otherwise  = 0.95
+    | days < 3   = 1
+    | days >= 11 = 0.85
+    | days >= 6  = 0.9
+    | otherwise  = 0.95
    where
     days = length dates
 
-afterDiscounts :: Car -> [Int] -> Bool -> Double
+afterDiscounts :: Car -> [WeekDay] -> Bool -> Double
 afterDiscounts car days mem
-    |mem = tot*0.95
-    |otherwise = tot
+    | mem = tot*0.95
+    | otherwise = tot
    where
     tot = fromIntegral (carTotal car days) * (dayDiscount days)
 
-toRentalInfo :: ([Maybe Int], [String]) -> Maybe RentalInfo
-toRentalInfo (days, [car, member, age])
-    |Nothing `elem` days = Nothing
-    |c == Nothing        = Nothing
-    |m == Nothing        = Nothing
-    |a == Nothing        = Nothing
-    |otherwise           = Just $ RentalInfo (map getVal days) (getVal c) (getVal m) (getVal a)
-   where
-    c = toCar car
-    m = toMember member
-    a = readMaybe age :: Maybe Int
-    getVal (Just val) = val
-
-toCar :: String -> Maybe Car
-toCar car
-    |car == "small" = Just Small
-    |car == "sport" = Just Sport
-    |car == "suv"   = Just SUV
-    |otherwise      = Nothing 
-
-toMember :: String -> Maybe Bool
-toMember member
-    |member == "false" = Just False
-    |member == "true"  = Just True
-    |otherwise         = Nothing
-
 insPerDay :: Car -> Double
-insPerDay car = case car of
-                    Small -> 5
-                    Sport -> 7
-                    SUV   -> 10
+insPerDay car = case carType car of
+                    "small" -> 5
+                    "sport" -> 7
+                    "SUV"   -> 10
 
-insurance :: [Int] -> Car -> Int -> Double
+insurance :: [UTCTime] -> Car -> Int -> Double
 insurance [] _ _ = 0
 insurance dates car age
-    |age < 25 = days*(insPerDay car)*1.25
-    |otherwise = days*(insPerDay car)
+    | age < 25 = days*(insPerDay car)*1.25
+    | otherwise = days*(insPerDay car)
    where
     days = fromIntegral (length dates)
 
@@ -126,31 +147,25 @@ roundTwo :: (Fractional a, RealFrac a1) => a1 -> a
 roundTwo x = (fromInteger $ round $ x * (10^2)) / (10.0^^2)
 
 toPriceInfo :: RentalInfo -> PriceInfo
-toPriceInfo (RentalInfo {dates, carType, member, age}) = PriceInfo sub ins dis tot
+toPriceInfo (RentalInfo {rentDates, car, membership, age}) = PriceInfo sub ins dis tot
     where
-        sub  = subTotal carType dates
-        ins' = insurance dates carType age
-        aft' = afterDiscounts carType dates member
-        dis' = discount sub aft'
-        tot' = ins'+aft'
+        sub             = subTotal car rentDates
+        ins'            = insurance rentDates car age
+        aft'            = afterDiscounts car dates membership
+        dis'            = discount sub aft'
+        tot'            = ins'+aft'
+        dates           = map dayOfWeek rentDates 
         [ins, dis, tot] = map roundTwo [ins', dis', tot']
 
-is18 :: RentalInfo -> Bool
-is18 (RentalInfo {age})
-    |age >= 18 = True
-    |otherwise = False
+is18 :: RentalInfo -> Maybe RentalInfo
+is18 ri
+    | age ri >= 18 = Just ri
+    | otherwise = Nothing
 
-validateRental :: ([Maybe Int], [String]) -> Maybe RentalInfo
-validateRental p
-    |mRental == Nothing = Nothing
-    |is18 r             = mRental
-    |otherwise          = Nothing
-   where
-    mRental = toRentalInfo p
-    rental (Just r) = r
-    r = rental mRental
+validateRental :: ByteString -> Maybe RentalInfo
+validateRental input = is18 =<< decode input :: Maybe RentalInfo 
 
-calcTotal :: ([Maybe Int], [String]) -> String
+calcTotal :: ByteString -> String
 calcTotal input = case validateRental input of
                     Just rental -> show . encode $ toPriceInfo rental
                     Nothing     -> "The rental was not valid or renter is under 18"

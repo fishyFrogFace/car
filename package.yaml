@@ -1,0 +1,38 @@
+name:                car
+version:             0.1.0.0
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+
+library:
+  source-dirs: src
+  dependencies:
+  - aeson
+  - split
+  - time
+
+executables:
+  car-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - car
+
+tests:
+  car-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - car
+    - aeson
+    - hspec
+    - QuickCheck
