@@ -24,35 +24,10 @@ import Data.Aeson.TH (deriveJSON, defaultOptions, Options(fieldLabelModifier))
 import GHC.Generics
 import RenameUtils
 import Data.Time.Clock (UTCTime(..), utctDay)
-import Data.Time.Calendar (Day(..))
+import Data.Time.Calendar (Day(..), dayOfWeek, DayOfWeek(..))
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Control.Monad ((=<<))
 import Data.ByteString.Lazy.Internal (ByteString(..))
-
-data WeekDay = Monday
-             | Tuesday
-             | Wednesday
-             | Thursday
-             | Friday
-             | Saturday
-             | Sunday
-             deriving (Show, Eq)
-
--- when time-1.9 is supported in a LTS, this function can be made a lot prettier
--- since both WeekDay(..) and dayOfWeek can be called from the library
--- intday is a partial function and should stay inside dayOfWeek
-dayOfWeek :: UTCTime -> WeekDay
-dayOfWeek utc = intWeekday num
-                 where
-            (_,_,num) = toWeekDate $ utctDay utc
-            intWeekday :: Int -> WeekDay
-            intWeekday 1 = Monday
-            intWeekday 2 = Tuesday
-            intWeekday 3 = Wednesday
-            intWeekday 4 = Thursday
-            intWeekday 5 = Friday
-            intWeekday 6 = Saturday
-            intWeekday 7 = Sunday
 
 data Model = Dwarfy
            | Halfing
@@ -95,24 +70,24 @@ carPrice car = case carType car of
                     "sport" -> 60
                     "SUV"   -> 100
 
-carTotal :: Car -> [WeekDay] -> Int
+carTotal :: Car -> [DayOfWeek] -> Int
 carTotal _ [] = 0
 carTotal car (x:xs)
-    | x == Saturday || x == Sunday = dayPrice + (carTotal car xs)
+    | x == Saturday || x == Sunday = dayPrice + carTotal car xs
     | otherwise                    = (dayPrice - (dayPrice `div` 10)) + (carTotal car xs)
    where
     dayPrice = carPrice car
 
 subTotal :: Car -> [UTCTime] -> Int
 subTotal _ [] = 0
-subTotal car (x:xs) = (carPrice car) + (subTotal car xs)
+subTotal car (x:xs) = carPrice car + subTotal car xs
 
 discount :: Int -> Double -> Double
 discount subT disc = 100-percentage
                   where
                      percentage = (disc/fromIntegral subT)*100
 
-dayDiscount :: [WeekDay] -> Double
+dayDiscount :: [DayOfWeek] -> Double
 dayDiscount [] = 0
 dayDiscount dates
     | days < 3   = 1
@@ -122,7 +97,7 @@ dayDiscount dates
    where
     days = length dates
 
-afterDiscounts :: Car -> [WeekDay] -> Bool -> Double
+afterDiscounts :: Car -> [DayOfWeek] -> Bool -> Double
 afterDiscounts car days mem
     | mem = tot*0.95
     | otherwise = tot
@@ -154,7 +129,7 @@ toPriceInfo (RentalInfo {rentDates, car, membership, age}) = PriceInfo sub ins d
         aft'            = afterDiscounts car dates membership
         dis'            = discount sub aft'
         tot'            = ins'+aft'
-        dates           = map dayOfWeek rentDates 
+        dates           = map (dayOfWeek . utctDay) rentDates 
         [ins, dis, tot] = map roundTwo [ins', dis', tot']
 
 is18 :: RentalInfo -> Maybe RentalInfo
