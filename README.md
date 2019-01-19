@@ -1,6 +1,8 @@
 # car
 Calculates the validity and/or price of a car rental from JSON.
 
+Output of calculation is also JSON.
+
 You need [Stack](https://www.haskell.org/platform/) to build the project.
 
 - Cars can be small, sport or SUV and the price depends on the type of car (40USD/day for small cars, 60USD/day for sport cars, 100USD/day for SUV cars).
