@@ -1,14 +1,16 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c54a13db7a23381987849091a5c3da98e33f681fd0f11aae1460b3c1fa317f9c
+-- hash: f247cc6a43ed94fce7f2b3b9bb8728b225d82efdde54b5811c72c75973a9ec55
 
 name:           car
 version:        0.1.0.0
+license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 
 library
   exposed-modules:
