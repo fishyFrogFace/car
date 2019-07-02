@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f247cc6a43ed94fce7f2b3b9bb8728b225d82efdde54b5811c72c75973a9ec55
+-- hash: 9aa85a2c124aec2371e63abb32fed376755f84349008f3ac375cffec3a52158e
 
 name:           car
 version:        0.1.0.0
@@ -15,7 +15,6 @@ build-type:     Simple
 library
   exposed-modules:
       Lib
-      RenameUtils
   other-modules:
       Paths_car
   hs-source-dirs:

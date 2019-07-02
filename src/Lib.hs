@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Lib
     ( Car(..)
@@ -19,10 +18,16 @@ module Lib
     , roundTwo
     ) where
 
-import Data.Aeson (FromJSON(..), ToJSON(..), decode, encode)
-import Data.Aeson.TH (deriveJSON, defaultOptions, Options(fieldLabelModifier))
+import Data.Aeson (FromJSON(..)
+                 , ToJSON(..)
+                 , decode
+                 , encode
+                 , (.:)
+                 , withObject
+                 , pairs
+                 , (.=)
+                 , object)
 import GHC.Generics
-import RenameUtils
 import Data.Time.Clock (UTCTime(..), utctDay)
 import Data.Time.Calendar (Day(..), dayOfWeek, DayOfWeek(..))
 import Data.Time.Calendar.WeekDate (toWeekDate)
@@ -44,7 +49,14 @@ data Car = Car { model :: Model
                , carType :: String
                } deriving (Show, Eq, Generic)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = carFieldRename} ''Car)
+instance FromJSON Car where
+  parseJSON = withObject "Car" $ \v -> Car
+    <$> v .: "model"
+    <*> v .: "type"
+
+instance ToJSON Car where
+  toJSON (Car m ct) = object ["model" .= m, "type" .= ct]
+  toEncoding (Car m ct) = pairs ("model" .= m <> "type" .= ct)
 
 data RentalInfo = RentalInfo { rentDates :: [UTCTime]
                              , car :: Car
